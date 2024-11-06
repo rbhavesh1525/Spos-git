@@ -1,0 +1,99 @@
+/*Practical : Write a program to simulate CPU Scheduling Algorithms: Round Robin. (TQ=1 Sec) Process AT BT P1 10 2 P2 0 10 P3 8 4 P4 5 5*/
+
+import java.util.LinkedList;
+import java.util.Queue;
+
+class Process {
+    String name;
+    int arrivalTime;
+    int burstTime;
+    int remainingTime;
+    int completionTime;
+    int waitingTime;
+    int turnaroundTime;
+
+    Process(String name, int arrivalTime, int burstTime) {
+        this.name = name;
+        this.arrivalTime = arrivalTime;
+        this.burstTime = burstTime;
+        this.remainingTime = burstTime;
+    }
+}
+
+public class RoundRobinScheduling {
+
+    public static void main(String[] args) {
+        // Define time quantum
+        int timeQuantum = 1;
+
+        // Initialize processes
+        Process[] processes = {
+            new Process("P1", 10, 2),
+            new Process("P2", 0, 10),
+            new Process("P3", 8, 4),
+            new Process("P4", 5, 5)
+        };
+
+        // Sort processes by arrival time
+        Queue<Process> readyQueue = new LinkedList<>();
+        int currentTime = 0;
+        int completedProcesses = 0;
+        int totalWaitingTime = 0;
+        int totalTurnaroundTime = 0;
+
+        // List of completed processes for tracking final statistics
+        Queue<Process> completedProcessesList = new LinkedList<>();
+
+        while (completedProcesses < processes.length) {
+            // Add processes to ready queue if they've arrived
+            for (Process process : processes) {
+                if (process.arrivalTime <= currentTime && !readyQueue.contains(process) && process.remainingTime > 0) {
+                    readyQueue.add(process);
+                }
+            }
+
+            // If the ready queue is empty, increment time to the next arrival
+            if (readyQueue.isEmpty()) {
+                currentTime++;
+                continue;
+            }
+
+            // Process in the front of the queue
+            Process currentProcess = readyQueue.poll();
+
+            // Execute the process for 1 time unit or remaining time, whichever is smaller
+            int executionTime = Math.min(timeQuantum, currentProcess.remainingTime);
+            currentTime += executionTime;
+            currentProcess.remainingTime -= executionTime;
+
+            // If process is completed, record completion time
+            if (currentProcess.remainingTime == 0) {
+                currentProcess.completionTime = currentTime;
+                currentProcess.turnaroundTime = currentProcess.completionTime - currentProcess.arrivalTime;
+                currentProcess.waitingTime = currentProcess.turnaroundTime - currentProcess.burstTime;
+                completedProcessesList.add(currentProcess);
+
+                totalWaitingTime += currentProcess.waitingTime;
+                totalTurnaroundTime += currentProcess.turnaroundTime;
+                completedProcesses++;
+            } else {
+                // Re-add process to the back of the queue if it's not done
+                readyQueue.add(currentProcess);
+            }
+        }
+
+        // Display results
+        System.out.println("Process\tAT\tBT\tCT\tTAT\tWT");
+        for (Process process : completedProcessesList) {
+            System.out.println(process.name + "\t" + process.arrivalTime + "\t" + process.burstTime + "\t" +
+                    process.completionTime + "\t" + process.turnaroundTime + "\t" + process.waitingTime);
+        }
+
+        // Calculate and display average waiting time and turnaround time
+        double averageWaitingTime = (double) totalWaitingTime / processes.length;
+        double averageTurnaroundTime = (double) totalTurnaroundTime / processes.length;
+
+        System.out.printf("Average Waiting Time: %.2f\n", averageWaitingTime);
+        System.out.printf("Average Turnaround Time: %.2f\n", averageTurnaroundTime);
+    }
+}

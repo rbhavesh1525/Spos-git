@@ -1,0 +1,168 @@
+/*Practical : Write a program to simulate Memory placement strategies – best fit, first fit.*/
+
+import java.util.Arrays;
+
+class MemoryAllocation {
+    // Method for First Fit memory allocation strategy
+    public static void firstFit(int[] blockSizes, int[] processSizes) {
+        int n = processSizes.length;
+        int m = blockSizes.length;
+        int[] allocation = new int[n];  // To store allocated block index for each process
+        Arrays.fill(allocation, -1);    // Initialize all allocations as -1 (indicating no allocation)
+
+        // Traverse each process and try to allocate memory
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                if (blockSizes[j] >= processSizes[i]) { // If block j can accommodate process i
+                    allocation[i] = j;                  // Allocate block j to process i
+                    blockSizes[j] -= processSizes[i];   // Reduce available memory in block j
+                    break;
+                }
+            }
+        }
+
+        System.out.println("First Fit Allocation:");
+        printAllocation(processSizes, allocation);
+    }
+
+    // Method for Best Fit memory allocation strategy
+    public static void bestFit(int[] blockSizes, int[] processSizes) {
+        int n = processSizes.length;
+        int m = blockSizes.length;
+        int[] allocation = new int[n];  // To store allocated block index for each process
+        Arrays.fill(allocation, -1);    // Initialize all allocations as -1 (indicating no allocation)
+
+        // Traverse each process and try to allocate memory
+        for (int i = 0; i < n; i++) {
+            int bestIdx = -1;
+            for (int j = 0; j < m; j++) {
+                if (blockSizes[j] >= processSizes[i]) { // If block j can accommodate process i
+                    if (bestIdx == -1 || blockSizes[j] < blockSizes[bestIdx]) {
+                        bestIdx = j;                    // Update bestIdx to block j if it's a better fit
+                    }
+                }
+            }
+
+            // If a suitable block is found for process i
+            if (bestIdx != -1) {
+                allocation[i] = bestIdx;                // Allocate best fitting block to process i
+                blockSizes[bestIdx] -= processSizes[i]; // Reduce available memory in the chosen block
+            }
+        }
+
+        System.out.println("Best Fit Allocation:");
+        printAllocation(processSizes, allocation);
+    }
+
+    // Helper method to print memory allocation details
+    private static void printAllocation(int[] processSizes, int[] allocation) {
+        System.out.println("Process No.\tProcess Size\tBlock No.");
+        for (int i = 0; i < processSizes.length; i++) {
+            System.out.print(" " + (i + 1) + "\t\t" + processSizes[i] + "\t\t");
+            if (allocation[i] != -1)
+                System.out.println(allocation[i] + 1);
+            else
+                System.out.println("Not Allocated");
+        }
+    }
+
+    public static void main(String[] args) {
+        // Example memory blocks and process sizes
+        int[] blockSizes = {100, 500, 200, 300, 600};
+        int[] processSizes = {212, 417, 112, 426};
+
+        // First Fit allocation
+        int[] firstFitBlockSizes = Arrays.copyOf(blockSizes, blockSizes.length);
+        firstFit(firstFitBlockSizes, processSizes);
+
+        System.out.println();
+
+        // Best Fit allocation
+        int[] bestFitBlockSizes = Arrays.copyOf(blockSizes, blockSizes.length);
+        bestFit(bestFitBlockSizes, processSizes);
+    }
+}
+
+
+import java.util.Arrays;
+
+class MemoryAllocation {
+    // Method for First Fit memory allocation strategy
+    public static void firstFit(int[] blockSizes, int[] processSizes) {
+        int n = processSizes.length;
+        int m = blockSizes.length;
+        int[] allocation = new int[n];  // To store allocated block index for each process
+        Arrays.fill(allocation, -1);    // Initialize all allocations as -1 (indicating no allocation)
+
+        // Traverse each process and try to allocate memory
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                if (blockSizes[j] >= processSizes[i]) { // If block j can accommodate process i
+                    allocation[i] = j;                  // Allocate block j to process i
+                    blockSizes[j] -= processSizes[i];   // Reduce available memory in block j
+                    break;
+                }
+            }
+        }
+
+        System.out.println("First Fit Allocation:");
+        printAllocation(processSizes, allocation);
+    }
+
+    // Method for Best Fit memory allocation strategy
+    public static void bestFit(int[] blockSizes, int[] processSizes) {
+        int n = processSizes.length;
+        int m = blockSizes.length;
+        int[] allocation = new int[n];  // To store allocated block index for each process
+        Arrays.fill(allocation, -1);    // Initialize all allocations as -1 (indicating no allocation)
+
+        // Traverse each process and try to allocate memory
+        for (int i = 0; i < n; i++) {
+            int bestIdx = -1;
+            for (int j = 0; j < m; j++) {
+                if (blockSizes[j] >= processSizes[i]) { // If block j can accommodate process i
+                    if (bestIdx == -1 || blockSizes[j] < blockSizes[bestIdx]) {
+                        bestIdx = j;                    // Update bestIdx to block j if it's a better fit
+                    }
+                }
+            }
+
+            // If a suitable block is found for process i
+            if (bestIdx != -1) {
+                allocation[i] = bestIdx;                // Allocate best fitting block to process i
+                blockSizes[bestIdx] -= processSizes[i]; // Reduce available memory in the chosen block
+            }
+        }
+
+        System.out.println("Best Fit Allocation:");
+        printAllocation(processSizes, allocation);
+    }
+
+    // Helper method to print memory allocation details
+    private static void printAllocation(int[] processSizes, int[] allocation) {
+        System.out.println("Process No.\tProcess Size\tBlock No.");
+        for (int i = 0; i < processSizes.length; i++) {
+            System.out.print(" " + (i + 1) + "\t\t" + processSizes[i] + "\t\t");
+            if (allocation[i] != -1)
+                System.out.println(allocation[i] + 1);
+            else
+                System.out.println("Not Allocated");
+        }
+    }
+
+    public static void main(String[] args) {
+        // Example memory blocks and process sizes
+        int[] blockSizes = {100, 500, 200, 300, 600};
+        int[] processSizes = {212, 417, 112, 426};
+
+        // First Fit allocation
+        int[] firstFitBlockSizes = Arrays.copyOf(blockSizes, blockSizes.length);
+        firstFit(firstFitBlockSizes, processSizes);
+
+        System.out.println();
+
+        // Best Fit allocation
+        int[] bestFitBlockSizes = Arrays.copyOf(blockSizes, blockSizes.length);
+        bestFit(bestFitBlockSizes, processSizes);
+    }
+}

@@ -1,0 +1,144 @@
+/*Practical 2: Implement Pass-II of two pass assembler for pseudo-machine in Java using object oriented features. The output of assignment-1 (intermediate file and symbol table) should be input for this assignment.*/
+
+import java.util.*;
+
+class PassTwoAssembler {
+    private SymbolTable symbolTable;
+    private LiteralTable literalTable;
+
+    public PassTwoAssembler(SymbolTable symbolTable, LiteralTable literalTable) {
+        this.symbolTable = symbolTable;
+        this.literalTable = literalTable;
+    }
+
+    public void generateMachineCode(List<String> intermediateCode) {
+        for (String line : intermediateCode) {
+            String[] tokens = line.split(" ");
+            String operationType = tokens[1].substring(1, 3); // Extracts "IS", "AD", "DL"
+            switch (operationType) {
+                case "IS":
+                    handleImperativeStatement(tokens);
+                    break;
+                case "AD":
+                    // Ignore assembler directives in Pass II
+                    break;
+                case "DL":
+                    handleDeclarativeStatement(tokens);
+                    break;
+                default:
+                    System.out.println("Unknown operation: " + line);
+            }
+        }
+    }
+
+    private void handleImperativeStatement(String[] tokens) {
+        // Example: 100 (IS,5) (RG,1) (C,05)
+        String locationCounter = tokens[0];
+        String opcode = tokens[1].substring(4, tokens[1].length() - 1); // Extracts the opcode from (IS,5)
+        String operand1 = parseOperand(tokens[2]);
+        String operand2 = tokens.length > 3 ? parseOperand(tokens[3]) : "";
+
+        System.out.printf("%s %s %s %s%n", locationCounter, opcode, operand1, operand2);
+    }
+
+    private void handleDeclarativeStatement(String[] tokens) {
+        // Example: 110 (DL,1) (C,05)
+        String locationCounter = tokens[0];
+        String opcode = tokens[1].substring(4, tokens[1].length() - 1); // Extracts the opcode from (DL,1)
+        String operand = tokens[2].substring(3, tokens[2].length() - 1); // Extract constant value
+
+        System.out.printf("%s %s %s%n", locationCounter, opcode, operand);
+    }
+
+    private String parseOperand(String token) {
+        if (token.startsWith("(RG")) {
+            // Register operand
+            return token.substring(4, token.length() - 1); // Extracts register number
+        } else if (token.startsWith("(S")) {
+            // Symbol operand
+            int symbolIndex = Integer.parseInt(token.substring(3, token.length() - 1));
+            return Integer.toString(symbolTable.getAddressByIndex(symbolIndex));
+        } else if (token.startsWith("(L")) {
+            // Literal operand
+            int literalIndex = Integer.parseInt(token.substring(3, token.length() - 1));
+            return Integer.toString(literalTable.getAddressByIndex(literalIndex));
+        } else if (token.startsWith("(C")) {
+            // Constant operand
+            return token.substring(3, token.length() - 1);
+        }
+        return "";
+    }
+
+    public static void main(String[] args) {
+        SymbolTable symbolTable = new SymbolTable();
+        LiteralTable literalTable = new LiteralTable();
+
+        // Add symbols and literals as per the tables in your image
+        symbolTable.addSymbol("up", 102);
+        symbolTable.addSymbol("a", 109);
+        symbolTable.addSymbol("b", 110);
+        symbolTable.addSymbol("c", 111);
+        symbolTable.addSymbol("next", 102);
+
+        literalTable.addLiteral("5", 102);
+        literalTable.addLiteral("8", 105);
+        literalTable.addLiteral("8", 106);
+        literalTable.addLiteral("7", 113);
+        literalTable.addLiteral("8", 114);
+
+        List<String> intermediateCode = List.of(
+            "(AD,1) (C,100)",
+            "100 (IS,5) (RG,1) (C,05)",
+            "101 (IS,5) (RG,2) (C,10)",
+            "102 (IS,1) (S,2) (RG,1) (RG,2)",
+            "103 (IS,6) (S,2) (L,1)",
+            "104 (IS,4) (RG,1) (S,1)",
+            "105 (AD,3) (C,102)",
+            "106 (IS,5) (S,3) (L,2)",
+            "107 (IS,6) (S,2) (L,4)",
+            "108 (IS,6) (S,3) (L,5)"
+        );
+
+        PassTwoAssembler passTwo = new PassTwoAssembler(symbolTable, literalTable);
+        passTwo.generateMachineCode(intermediateCode);
+    }
+}
+
+// Helper classes for SymbolTable and LiteralTable
+class SymbolTable {
+    private Map<String, Integer> symbols = new HashMap<>();
+    private List<String> symbolList = new ArrayList<>(); // Used to track order of symbols
+
+    public void addSymbol(String symbol, int address) {
+        symbols.put(symbol, address);
+        symbolList.add(symbol);
+    }
+
+    public int getAddressByIndex(int index) {
+        String symbol = symbolList.get(index - 1); // Indexes start from 1
+        return symbols.getOrDefault(symbol, -1);
+    }
+}
+
+class LiteralTable {
+    private Map<String, Integer> literals = new HashMap<>();
+    private List<String> literalList = new ArrayList<>(); // Used to track order of literals
+
+    public void addLiteral(String literal, int address) {
+        literals.put(literal, address);
+        literalList.add(literal);
+    }
+
+    public int getAddressByIndex(int index) {
+        String literal = literalList.get(index - 1); // Indexes start from 1
+        return literals.getOrDefault(literal, -1);
+    }
+}
+
+
+
+
+
+
+
+

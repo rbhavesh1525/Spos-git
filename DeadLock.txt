@@ -1,0 +1,109 @@
+/*Practical : Write a program to implement Deadlock Avoidance Algorithm*/
+
+import java.util.Scanner;
+
+public class BankersAlgorithm {
+
+    // Function to check if the system is in a safe state
+    public static boolean isSafe(int n, int m, int[][] allocation, int[][] max, int[] available) {
+        // Need matrix
+        int[][] need = new int[n][m];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                need[i][j] = max[i][j] - allocation[i][j];
+            }
+        }
+
+        // Work vector to keep track of available resources
+        int[] work = new int[m];
+        System.arraycopy(available, 0, work, 0, m);
+
+        // Finish array to mark which processes can finish
+        boolean[] finish = new boolean[n];
+        for (int i = 0; i < n; i++) {
+            finish[i] = false;
+        }
+
+        // Safe sequence
+        int count = 0;
+        while (count < n) {
+            boolean found = false;
+            for (int i = 0; i < n; i++) {
+                // If process i is not finished and needs less than or equal to available resources
+                if (!finish[i]) {
+                    boolean canAllocate = true;
+                    for (int j = 0; j < m; j++) {
+                        if (need[i][j] > work[j]) {
+                            canAllocate = false;
+                            break;
+                        }
+                    }
+
+                    if (canAllocate) {
+                        // Simulate allocation
+                        for (int j = 0; j < m; j++) {
+                            work[j] += allocation[i][j];
+                        }
+
+                        finish[i] = true;
+                        found = true;
+                        count++;
+                    }
+                }
+            }
+
+            // If no process can proceed, the system is in an unsafe state
+            if (!found) {
+                return false;
+            }
+        }
+
+        return true; // If all processes can finish, the system is in a safe state
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        // Input number of processes and resources
+        System.out.print("Enter number of processes: ");
+        int n = sc.nextInt();
+        System.out.print("Enter number of resources: ");
+        int m = sc.nextInt();
+
+        // Matrices and vectors for the system
+        int[][] allocation = new int[n][m];
+        int[][] max = new int[n][m];
+        int[] available = new int[m];
+
+        // Input the allocation matrix
+        System.out.println("Enter allocation matrix:");
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                allocation[i][j] = sc.nextInt();
+            }
+        }
+
+        // Input the maximum matrix
+        System.out.println("Enter maximum matrix:");
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                max[i][j] = sc.nextInt();
+            }
+        }
+
+        // Input the available resources
+        System.out.println("Enter available resources:");
+        for (int i = 0; i < m; i++) {
+            available[i] = sc.nextInt();
+        }
+
+        // Check if the system is in a safe state
+        if (isSafe(n, m, allocation, max, available)) {
+            System.out.println("The system is in a safe state.");
+        } else {
+            System.out.println("The system is in an unsafe state.");
+        }
+
+        sc.close();
+    }
+}

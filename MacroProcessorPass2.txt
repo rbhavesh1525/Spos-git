@@ -1,0 +1,117 @@
+/*PRACTICAL 5 : The output of Pass-I (MNT, MDT and intermediate code file without any macro definitions) should be input for Pass-II. Implement PassII of 2 pass Macro*/
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class MacroProcessorPass2 {
+    
+    // Macro Name Table (MNT) with starting index in MDT and number of parameters
+    private static final Map<String, MacroDefinition> MNT = new HashMap<>();
+    // Macro Definition Table (MDT)
+    private static final List<String[]> MDT = new ArrayList<>();
+    // Argument List Array (ARG Table)
+    private static final Map<String, String[]> ARG_TABLE = new HashMap<>();
+    
+    static {
+        // Initialize MNT (Macro Name Table)
+        MNT.put("INCR", new MacroDefinition(0, 3));
+        MNT.put("DECR", new MacroDefinition(5, 3));
+
+        // Initialize MDT (Macro Definition Table)
+        MDT.add(new String[]{"INCR", "&X", "&Y", "&REG1=AREG"});
+        MDT.add(new String[]{"MOVER", "&REG1", "&Y"});
+        MDT.add(new String[]{"ADD", "&REG1", "&X"});
+        MDT.add(new String[]{"MOVEM", "&REG1", "&A"});
+        MDT.add(new String[]{"MEND"});
+
+        MDT.add(new String[]{"DECR", "&A", "&B", "&REG2=BREG"});
+        MDT.add(new String[]{"MOVER", "&REG2", "&A"});
+        MDT.add(new String[]{"SUB", "&REG2", "&B"});
+        MDT.add(new String[]{"MOVEM", "&REG2", "&A"});
+        MDT.add(new String[]{"MEND"});
+
+        // Initialize ARG_TABLE (Argument List Array)
+        ARG_TABLE.put("INCR", new String[]{"&X", "&Y", "&REG1"});
+        ARG_TABLE.put("DECR", new String[]{"&A", "&B", "&REG2"});
+    }
+    
+    // Intermediate Code (from Pass-I, without macro definitions)
+    private static final List<String> intermediateCode = List.of(
+        "START 100",
+        "READ N1",
+        "READ N2",
+        "INCR N1, N2, AREG",  // Macro call
+        "DECR N1, N3, BREG",  // Macro call
+        "STOP",
+        "N1 DS 1",
+        "N2 DS 1",
+        "N3 DS 1",
+        "END"
+    );
+
+    public static void main(String[] args) {
+        List<String> expandedCode = processPass2(intermediateCode);
+        
+        System.out.println("Expanded Code (Pass-II Output):");
+        for (String line : expandedCode) {
+            System.out.println(line);
+        }
+    }
+
+    public static List<String> processPass2(List<String> intermediateCode) {
+        List<String> outputCode = new ArrayList<>();
+
+        for (String line : intermediateCode) {
+            String[] tokens = line.split("\\s+");
+            String macroName = tokens[0];
+
+            if (MNT.containsKey(macroName)) {
+                // Macro invocation found
+                MacroDefinition macroDef = MNT.get(macroName);
+
+                // Ensure that we have arguments to split
+                String[] actualParams = tokens.length > 1 ? tokens[1].split(",") : new String[0];
+                
+                Map<String, String> argMap = new HashMap<>();
+                String[] formalParams = ARG_TABLE.get(macroName);
+                for (int i = 0; i < macroDef.numArgs; i++) {
+                    if (i < actualParams.length) {
+                        argMap.put(formalParams[i], actualParams[i].trim());
+                    }
+                }
+                
+                // Expand the macro from MDT
+                for (int i = macroDef.startIndex + 1; i < MDT.size(); i++) {
+                    String[] mdtLine = MDT.get(i);
+                    if (mdtLine[0].equals("MEND")) break;
+
+                    StringBuilder expandedLine = new StringBuilder();
+                    for (String token : mdtLine) {
+                        if (argMap.containsKey(token)) {
+                            expandedLine.append(argMap.get(token)).append(" ");
+                        } else {
+                            expandedLine.append(token).append(" ");
+                        }
+                    }
+                    outputCode.add(expandedLine.toString().trim());
+                }
+            } else {
+                // Not a macro line, directly add to output
+                outputCode.add(line);
+            }
+        }
+        return outputCode;
+    }
+}
+
+// Helper class for MNT entries
+class MacroDefinition {
+    int startIndex;
+    int numArgs;
+
+    public MacroDefinition(int startIndex, int numArgs) {
+        this.startIndex = startIndex;
+        this.numArgs = numArgs;
+    }
+}

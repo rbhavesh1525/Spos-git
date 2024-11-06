@@ -1,0 +1,96 @@
+/*Practical : Write a program to solve Classical Problems of Synchronization using Mutex and Semaphore (Reader Writer Problem)*/
+
+import java.util.concurrent.Semaphore;
+
+class ReaderWriterProblem {
+    // Semaphores
+    private static final Semaphore mutex = new Semaphore(1);      // Controls access to the reader count
+    private static final Semaphore wrt = new Semaphore(1);        // Controls access to the shared resource
+
+    private static int readerCount = 0;                           // Number of readers accessing the resource
+
+    static class Reader implements Runnable {
+        private int readerId;
+
+        public Reader(int id) {
+            this.readerId = id;
+        }
+
+        @Override
+        public void run() {
+            try {
+                // Acquire lock to update reader count
+                mutex.acquire();
+                readerCount++;
+                if (readerCount == 1) {
+                    // First reader locks the resource for reading
+                    wrt.acquire();
+                }
+                mutex.release();
+
+                // Reading section
+                System.out.println("Reader " + readerId + " is reading.");
+                Thread.sleep((int) (Math.random() * 1000));  // Simulating reading time
+
+                // Finished reading
+                mutex.acquire();
+                readerCount--;
+                if (readerCount == 0) {
+                    // Last reader releases the resource
+                    wrt.release();
+                }
+                mutex.release();
+
+                System.out.println("Reader " + readerId + " has finished reading.");
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    static class Writer implements Runnable {
+        private int writerId;
+
+        public Writer(int id) {
+            this.writerId = id;
+        }
+
+        @Override
+        public void run() {
+            try {
+                // Writer tries to acquire the write lock
+                wrt.acquire();
+
+                // Writing section
+                System.out.println("Writer " + writerId + " is writing.");
+                Thread.sleep((int) (Math.random() * 1000));  // Simulating writing time
+
+                // Finished writing
+                System.out.println("Writer " + writerId + " has finished writing.");
+
+                // Release the lock after writing
+                wrt.release();
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        // Creating readers and writers
+        Thread reader1 = new Thread(new Reader(1));
+        Thread reader2 = new Thread(new Reader(2));
+        Thread reader3 = new Thread(new Reader(3));
+        Thread writer1 = new Thread(new Writer(1));
+        Thread writer2 = new Thread(new Writer(2));
+
+        // Start the threads
+        reader1.start();
+        writer1.start();
+        reader2.start();
+        writer2.start();
+        reader3.start();
+    }
+}

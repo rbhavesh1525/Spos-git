@@ -1,0 +1,81 @@
+/*Practical: Write a program to simulate CPU Scheduling Algorithms: FCFS Process AT BT P1 10 2 P2 0 10 P3 8 4 P4 5 5*/
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+class Process {
+    String name;
+    int arrivalTime;
+    int burstTime;
+    int startTime;
+    int completionTime;
+    int waitingTime;
+    int turnaroundTime;
+
+    Process(String name, int arrivalTime, int burstTime) {
+        this.name = name;
+        this.arrivalTime = arrivalTime;
+        this.burstTime = burstTime;
+    }
+}
+
+public class FCFS_Scheduling {
+
+    public static void main(String[] args) {
+        // Define processes with given arrival and burst times
+        List<Process> processes = new ArrayList<>();
+        processes.add(new Process("P1", 10, 2));
+        processes.add(new Process("P2", 0, 10));
+        processes.add(new Process("P3", 8, 4));
+        processes.add(new Process("P4", 5, 5));
+
+        // Sort processes by arrival time
+        processes.sort(Comparator.comparingInt(p -> p.arrivalTime));
+
+        // Variables to keep track of time
+        int currentTime = 0;
+        int totalWaitingTime = 0;
+        int totalTurnaroundTime = 0;
+
+        // Execute each process in order of arrival
+        for (Process process : processes) {
+            // If the CPU is idle, move the current time to the arrival time of the next process
+            if (currentTime < process.arrivalTime) {
+                currentTime = process.arrivalTime;
+            }
+
+            // Start time is the current time
+            process.startTime = currentTime;
+
+            // Completion time is start time + burst time
+            process.completionTime = process.startTime + process.burstTime;
+
+            // Calculate waiting time and turnaround time
+            process.turnaroundTime = process.completionTime - process.arrivalTime;
+            process.waitingTime = process.turnaroundTime - process.burstTime;
+
+            // Update the current time to the completion time of the current process
+            currentTime = process.completionTime;
+
+            // Sum up waiting time and turnaround time for averages
+            totalWaitingTime += process.waitingTime;
+            totalTurnaroundTime += process.turnaroundTime;
+        }
+
+        // Display results
+        System.out.println("Process\tAT\tBT\tST\tCT\tTAT\tWT");
+        for (Process process : processes) {
+            System.out.println(process.name + "\t" + process.arrivalTime + "\t" + process.burstTime + "\t" +
+                    process.startTime + "\t" + process.completionTime + "\t" + process.turnaroundTime + "\t" +
+                    process.waitingTime);
+        }
+
+        // Calculate and display average waiting time and turnaround time
+        double averageWaitingTime = (double) totalWaitingTime / processes.size();
+        double averageTurnaroundTime = (double) totalTurnaroundTime / processes.size();
+
+        System.out.printf("Average Waiting Time: %.2f\n", averageWaitingTime);
+        System.out.printf("Average Turnaround Time: %.2f\n", averageTurnaroundTime);
+    }
+}

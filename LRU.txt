@@ -1,0 +1,53 @@
+/*Practical : Write a program to simulate Page replacement algorithm. 3. LRU Input reference String :- 2 3 2 1 5 2 4 5 3 2 5 2 No. of frames are:- 3*/
+
+import java.util.*;
+	
+public class LRUPageReplacement {
+
+    public static void lruPageReplacement(int[] referenceString, int numFrames) {
+        // Using LinkedHashMap to simulate LRU cache behavior
+        LinkedHashMap<Integer, Integer> cache = new LinkedHashMap<>(numFrames, 0.75f, true);
+        int pageFaults = 0;
+
+        for (int page : referenceString) {
+            // If the page is not in the cache, it's a page fault
+            if (!cache.containsKey(page)) {
+                pageFaults++;
+
+                // If cache is full, remove the least recently used (LRU) page
+                if (cache.size() >= numFrames) {
+                    Iterator<Map.Entry<Integer, Integer>> iterator = cache.entrySet().iterator();
+                    iterator.next();  // Remove the first (LRU) element
+                    iterator.remove();
+                }
+            }
+            // Add the page to the cache (or update its position)
+            cache.put(page, page);
+
+            // Print the current frame status after each page reference
+            System.out.println("Frames: " + cache.keySet());
+        }
+
+        System.out.println("Total Page Faults: " + pageFaults);
+    }
+
+    public static void main(String[] args) {
+        // Input reference string and number of frames
+        int[] referenceString = {2, 3, 2, 1, 5, 2, 4, 5, 3, 2, 5, 2};
+        int numFrames = 3;
+
+        lruPageReplacement(referenceString, numFrames);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+

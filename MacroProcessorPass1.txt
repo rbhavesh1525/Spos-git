@@ -1,0 +1,115 @@
+/*Practical 3: Design suitable data structures and implement Pass-I of a two-pass macro-processor.*/
+
+import java.util.*;
+
+public class MacroProcessorPassI {
+    private Map<String, Integer> mnt = new HashMap<>();   // Macro Name Table
+    private List<String> mdt = new ArrayList<>();         // Macro Definition Table
+    private Map<String, Integer> ala = new HashMap<>();   // Argument List Array
+
+    // Processes each line of input to generate MNT and MDT
+    public void processLines(List<String> lines) {
+        boolean isMacroDefinition = false;
+        String macroName = "";
+        int mdtIndex = 0;
+
+        for (String line : lines) {
+            String[] tokens = line.split(" ");
+            String keyword = tokens[0];
+
+            if (keyword.equals("MACRO")) {
+                isMacroDefinition = true; // Start of a macro definition
+                continue;
+            } else if (keyword.equals("MEND")) {
+                isMacroDefinition = false; // End of the current macro definition
+                mdt.add(line);  // Store MEND in MDT
+                continue;
+            }
+
+            if (isMacroDefinition) {
+                // First line after MACRO is the macro name and its parameters
+                if (macroName.isEmpty()) {
+                    macroName = tokens[0];
+                    mnt.put(macroName, mdtIndex);  // Add macro name to MNT with MDT index
+
+                    // Populate ALA with parameters
+                    for (int i = 1; i < tokens.length; i++) {
+                        String param = tokens[i].replace(",", "");
+                        if (param.contains("=")) {
+                            String[] parts = param.split("=");
+                            ala.put(parts[0], ala.size());
+                        } else {
+                            ala.put(param, ala.size());
+                        }
+                    }
+                } else {
+                    // Replace macro parameters in the line using ALA indices
+                    StringBuilder processedLine = new StringBuilder();
+                    for (String token : tokens) {
+                        if (ala.containsKey(token.replace(",", ""))) {
+                            processedLine.append("&").append(ala.get(token.replace(",", ""))).append(" ");
+                        } else {
+                            processedLine.append(token).append(" ");
+                        }
+                    }
+                    mdt.add(processedLine.toString().trim());  // Add processed line to MDT
+                }
+                mdtIndex++;
+            }
+        }
+    }
+
+    // Display the Macro Name Table (MNT) and Macro Definition Table (MDT)
+    public void displayTables() {
+        System.out.println("Macro Name Table (MNT):");
+        System.out.println("Macro\tMDT Index");
+        for (Map.Entry<String, Integer> entry : mnt.entrySet()) {
+            System.out.println(entry.getKey() + "\t" + entry.getValue());
+        }
+
+        System.out.println("\nMacro Definition Table (MDT):");
+        for (int i = 0; i < mdt.size(); i++) {
+            System.out.println(i + "\t" + mdt.get(i));
+        }
+
+        System.out.println("\nArgument List Array (ALA):");
+        for (Map.Entry<String, Integer> entry : ala.entrySet()) {
+            System.out.println(entry.getKey() + "\t" + entry.getValue());
+        }
+    }
+
+    public static void main(String[] args) {
+        MacroProcessorPassI passI = new MacroProcessorPassI();
+
+        // Sample input lines based on the example
+        List<String> lines = Arrays.asList(
+            "MACRO",
+            "INCR &X, &Y, &REG1=AREG",
+            "MOVER &REG1, &X",
+            "ADD &REG1, &Y",
+            "MOVEM &REG1, &X",
+            "MEND",
+            "MACRO",
+            "DECR &A, &B, &REG2=BREG",
+            "MOVER &REG2, &A",
+            "SUB &REG2, &B",
+            "MOVEM &REG2, &A",
+            "MEND",
+            "START 100",
+            "READ N1",
+            "READ N2",
+            "DECR N1, N2",
+            "INCR N1, N2",
+            "STOP",
+            "N1 DS 1",
+            "N2 DS 2",
+            "END"
+        );
+
+        passI.processLines(lines);
+        passI.displayTables();
+    }
+    
+    
+    
+}

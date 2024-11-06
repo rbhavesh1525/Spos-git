@@ -1,0 +1,88 @@
+/*Practical :  Write a program to simulate CPU Scheduling Algorithms: Priority (Non-Preemptive). Process AT BT P1 10 2 P2 0 10 P3 8 4 P4 5 5*/
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.PriorityQueue;
+
+class Process {
+    String name;
+    int arrivalTime;
+    int burstTime;
+    int priority;
+    int completionTime;
+    int waitingTime;
+    int turnaroundTime;
+
+    Process(String name, int arrivalTime, int burstTime, int priority) {
+        this.name = name;
+        this.arrivalTime = arrivalTime;
+        this.burstTime = burstTime;
+        this.priority = priority;
+    }
+}
+
+public class PrioritySchedulingNonPreemptive {
+
+    public static void main(String[] args) {
+        // Define processes with arrival time, burst time, and priority
+        List<Process> processes = new ArrayList<>();
+        processes.add(new Process("P1", 10, 2, 2));
+        processes.add(new Process("P2", 0, 10, 1));
+        processes.add(new Process("P3", 8, 4, 3));
+        processes.add(new Process("P4", 5, 5, 2));
+
+        // Sort processes by arrival time for initial order
+        processes.sort(Comparator.comparingInt(p -> p.arrivalTime));
+
+        // Priority queue to select process with the highest priority (lowest priority value)
+        PriorityQueue<Process> readyQueue = new PriorityQueue<>(Comparator.comparingInt(p -> p.priority));
+
+        int currentTime = 0;
+        int completedProcesses = 0;
+        int totalWaitingTime = 0;
+        int totalTurnaroundTime = 0;
+
+        while (completedProcesses < processes.size()) {
+            // Add all processes that have arrived by the current time to the ready queue
+            for (Process p : processes) {
+                if (p.arrivalTime <= currentTime && !readyQueue.contains(p) && p.completionTime == 0) {
+                    readyQueue.add(p);
+                }
+            }
+
+            // If the ready queue is empty, increment time to the next arrival time
+            if (readyQueue.isEmpty()) {
+                currentTime++;
+                continue;
+            }
+
+            // Get the process with the highest priority (lowest priority value)
+            Process currentProcess = readyQueue.poll();
+
+            // Process it until completion (non-preemptive)
+            currentTime += currentProcess.burstTime;
+            currentProcess.completionTime = currentTime;
+            currentProcess.turnaroundTime = currentProcess.completionTime - currentProcess.arrivalTime;
+            currentProcess.waitingTime = currentProcess.turnaroundTime - currentProcess.burstTime;
+
+            // Update total times
+            totalWaitingTime += currentProcess.waitingTime;
+            totalTurnaroundTime += currentProcess.turnaroundTime;
+
+            completedProcesses++;
+        }
+
+        // Display results
+        System.out.println("Process\tAT\tBT\tP\tCT\tTAT\tWT");
+        for (Process process : processes) {
+            System.out.println(process.name + "\t" + process.arrivalTime + "\t" + process.burstTime + "\t" +
+                    process.priority + "\t" + process.completionTime + "\t" + process.turnaroundTime + "\t" + process.waitingTime);
+        }
+        // Calculate and display average waiting time and turnaround time
+        double averageWaitingTime = (double) totalWaitingTime / processes.size();
+        double averageTurnaroundTime = (double) totalTurnaroundTime / processes.size();
+
+        System.out.printf("Average Waiting Time: %.2f\n", averageWaitingTime);
+        System.out.printf("Average Turnaround Time: %.2f\n", averageTurnaroundTime);
+    }
+}

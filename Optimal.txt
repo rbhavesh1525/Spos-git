@@ -1,0 +1,89 @@
+/*Practical : Write a program to simulate Page replacement algorithm. 2. OPTIMAL Input reference String :- 2 3 2 1 5 2 4 5 3 2 5 2 No. of frames are:- 3*/
+
+import java.util.*;
+
+public class OptimalPageReplacement {
+    public static void main(String[] args) {
+        // Input reference string and number of frames
+        int[] referenceString = {2, 3, 2, 1, 5, 2, 4, 5, 3, 2, 5, 2};
+        int framesCount = 3;
+
+        // Call the method to perform Optimal page replacement
+        optimalPageReplacement(referenceString, framesCount);
+    }
+
+    // Method to simulate Optimal page replacement
+    public static void optimalPageReplacement(int[] referenceString, int framesCount) {
+        List<Integer> frames = new ArrayList<>();
+        int pageFaults = 0;
+
+        System.out.println("Reference String: " + Arrays.toString(referenceString));
+        System.out.println("Number of Frames: " + framesCount);
+        System.out.println("\nPage Replacement Process:");
+
+        for (int i = 0; i < referenceString.length; i++) {
+            int page = referenceString[i];
+
+            // Check if page is already in frames
+            if (!frames.contains(page)) {
+                pageFaults++; // Page fault occurs
+
+                // If frames are full, apply Optimal replacement policy
+                if (frames.size() == framesCount) {
+                    int indexToReplace = findOptimalReplacementIndex(frames, referenceString, i + 1);
+                    int removedPage = frames.get(indexToReplace);
+                    frames.set(indexToReplace, page);
+                    System.out.println("Page " + removedPage + " replaced with Page " + page + ".");
+                } else {
+                    // Add page directly if there is space in frames
+                    frames.add(page);
+                    System.out.println("Page " + page + " added to frames.");
+                }
+            } else {
+                System.out.println("Page " + page + " already in frames (no page fault).");
+            }
+
+            // Display current frame content
+            System.out.print("Current Frames: ");
+            for (int framePage : frames) {
+                System.out.print(framePage + " ");
+            }
+            System.out.println();
+        }
+
+        // Display total page faults
+        System.out.println("\nTotal Page Faults: " + pageFaults);
+    }
+
+    // Method to find the optimal page to replace
+    private static int findOptimalReplacementIndex(List<Integer> frames, int[] referenceString, int currentIndex) {
+        int farthestIndex = -1;
+        int indexToReplace = -1;
+
+        for (int i = 0; i < frames.size(); i++) {
+            int page = frames.get(i);
+            int j = currentIndex;
+
+            // Find when this page is used again in the future
+            while (j < referenceString.length && referenceString[j] != page) {
+                j++;
+            }
+
+            // Update if this page is used farther in the future or not at all
+            if (j > farthestIndex) {
+                farthestIndex = j;
+                indexToReplace = i;
+            }
+        }
+        
+        return indexToReplace;
+    }
+}
+
+
+
+
+
+
+
+

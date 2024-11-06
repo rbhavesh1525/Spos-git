@@ -1,0 +1,60 @@
+/*Practical : Write a program to simulate Page replacement algorithm. 1. FIFO Input reference String :- 2 3 2 1 5 2 4 5 3 2 5 2 No. of frames are:- 3*/
+
+import java.util.*;
+
+public class FIFOPageReplacement {
+    public static void main(String[] args) {
+        // Input reference string and number of frames
+        int[] referenceString = {2, 3, 2, 1, 5, 2, 4, 5, 3, 2, 5, 2};
+        int framesCount = 3;
+
+        // Call the method to perform FIFO page replacement
+        fifoPageReplacement(referenceString, framesCount);
+    }
+
+    // Method to simulate FIFO page replacement
+    public static void fifoPageReplacement(int[] referenceString, int framesCount) {
+        // Using a Queue to implement FIFO for page replacement
+        Queue<Integer> frames = new LinkedList<>();
+        Set<Integer> pagesInFrames = new HashSet<>(); // To quickly check if a page is in frames
+        int pageFaults = 0;
+
+        System.out.println("Reference String: " + Arrays.toString(referenceString));
+        System.out.println("Number of Frames: " + framesCount);
+        System.out.println("\nPage Replacement Process:");
+
+        for (int page : referenceString) {
+            // Check if the page is already in frames (no page fault)
+            if (!pagesInFrames.contains(page)) {
+                pageFaults++; // Page fault occurs
+
+                // If frames are full, remove the oldest page (FIFO)
+                if (frames.size() == framesCount) {
+                    int removedPage = frames.poll();
+                    pagesInFrames.remove(removedPage);
+                    System.out.println("Page " + removedPage + " removed from frames.");
+                }
+
+                // Add the new page to the frames
+                frames.add(page);
+                pagesInFrames.add(page);
+                System.out.println("Page " + page + " added to frames.");
+            } else {
+                System.out.println("Page " + page + " already in frames (no page fault).");
+            }
+
+            // Display current frame content
+            System.out.print("Current Frames: ");
+            for (int framePage : frames) {
+                System.out.print(framePage + " ");
+            }
+            System.out.println();
+        }
+
+        // Display total page faults
+        System.out.println("\nTotal Page Faults: " + pageFaults);
+    }
+}
+
+
+

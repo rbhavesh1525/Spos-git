@@ -1,0 +1,181 @@
+/*Practical: Design suitable data structures and implement pass-I of a two-pass assembler for pseudo-machine in Java using object oriented feature.*/
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+class Assembler {
+    private SymbolTable symbolTable;
+    private LiteralTable literalTable;
+    private int locationCounter;
+    private List<Instruction> intermediateCode;
+
+    public Assembler() {
+        symbolTable = new SymbolTable();
+        literalTable = new LiteralTable();
+        intermediateCode = new ArrayList<>();
+    }
+
+    public void passOne(List<String> code) {
+        for (String line : code) {
+            String[] tokens = line.split(" ");
+            String operation = tokens[0].toLowerCase();
+
+            switch (operation) {
+                case "start":
+                    locationCounter = Integer.parseInt(tokens[1]);
+                    break;
+                case "movr":
+                case "mover":
+                case "movem":
+                case "add":
+                    processInstruction(tokens);
+                    break;
+                case "origin":
+                    locationCounter = symbolTable.getAddress(tokens[1]);
+                    break;
+                case "ltorg":
+                    literalTable.assignAddresses(locationCounter);
+                    locationCounter += literalTable.getLiteralCount();
+                    break;
+                case "ds":
+                    symbolTable.addSymbol(tokens[1], locationCounter);
+                    locationCounter += Integer.parseInt(tokens[2]);
+                    break;
+                case "dc":
+                    symbolTable.addSymbol(tokens[1], locationCounter);
+                    locationCounter++;
+                    break;
+                case "end":
+                    literalTable.assignAddresses(locationCounter);
+                    break;
+                default:
+                    if (operation.endsWith(":")) {
+                        String label = operation.replace(":", "");
+                        symbolTable.addSymbol(label, locationCounter);
+                        processInstruction(tokens);
+                    }
+            }
+        }
+    }
+
+    private void processInstruction(String[] tokens) {
+        // Check if the instruction starts after a label
+        int offset = tokens[0].endsWith(":") ? 1 : 0;
+        String operation = tokens[offset];
+        String operand1 = tokens.length > offset + 1 ? tokens[offset + 1] : null;
+        String operand2 = tokens.length > offset + 2 ? tokens[offset + 2] : null;
+
+        // Check for literals and add them to the literal table
+        if (operand2 != null && operand2.startsWith("='")) {
+            literalTable.addLiteral(operand2);
+        }
+
+        Instruction instruction = new Instruction(operation, operand1, operand2);
+        intermediateCode.add(instruction);
+        locationCounter++;
+    }
+
+    public void printTables() {
+        System.out.println("Symbol Table:");
+        symbolTable.print();
+        System.out.println("\nLiteral Table:");
+        literalTable.print();
+    }
+
+    public static void main(String[] args) {
+        Assembler assembler = new Assembler();
+        List<String> code = List.of(
+            "start 100",
+            "movr ax 05",
+            "mover bx 10",
+            "up: add ax bx",
+            "movem a ='5'",
+            "origin up",
+            "ltorg",
+            "movem b ='7'",
+            "ds a 02",
+            "dc b 10",
+            "end"
+        );
+        assembler.passOne(code);
+        assembler.printTables();
+    }
+}
+
+
+class SymbolTable {
+    private Map<String, Integer> symbols;
+
+    public SymbolTable() {
+        symbols = new HashMap<>();
+    }
+
+    public void addSymbol(String symbol, int address) {
+        if (!symbols.containsKey(symbol)) {
+            symbols.put(symbol, address);
+        }
+    }
+
+    public int getAddress(String symbol) {
+        return symbols.getOrDefault(symbol, -1);
+    }
+
+    public void print() {
+        for (Map.Entry<String, Integer> entry : symbols.entrySet()) {
+            System.out.println(entry.getKey() + " -> " + entry.getValue());
+        }
+    }
+}
+
+class LiteralTable {
+    private Map<String, Integer> literals;
+    private int literalCount;
+
+    public LiteralTable() {
+        literals = new HashMap<>();
+        literalCount = 0;
+    }
+
+    public void addLiteral(String literal) {
+        if (!literals.containsKey(literal)) {
+            literals.put(literal, -1);
+            literalCount++;
+        }
+    }
+
+    public void assignAddresses(int startAddress) {
+        for (Map.Entry<String, Integer> entry : literals.entrySet()) {
+            if (entry.getValue() == -1) {
+                literals.put(entry.getKey(), startAddress++);
+            }
+        }
+    }
+
+    public int getLiteralCount() {
+        return literalCount;
+    }
+
+    public void print() {
+        for (Map.Entry<String, Integer> entry : literals.entrySet()) {
+            System.out.println(entry.getKey() + " -> " + entry.getValue());
+        }
+    }
+}
+
+class Instruction {
+    private String operation;
+    private String operand1;
+    private String operand2;
+
+    public Instruction(String operation, String operand1, String operand2) {
+        this.operation = operation;
+        this.operand1 = operand1;
+        this.operand2 = operand2;
+    }
+    @Override
+    public String toString() {
+        return operation + " " + operand1 + " " + operand2;
+    }
+}
